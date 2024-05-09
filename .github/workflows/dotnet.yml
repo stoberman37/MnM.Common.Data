@@ -1,0 +1,52 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build
+
+on:
+  # push:
+  #   branches: 
+  #     - main
+  #     - feature/*
+  # pull_request:
+  #   branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      MAJOR_VERSION: 0
+      MINOR_VERSION: 1
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Set version
+      run: |
+        VERSION="${{env.MAJOR_VERSION}}.${{env.MINOR_VERSION}}.${{github.run_number}}"
+        if [[ "$BRANCH_NAME" != "main" ]]
+        then
+          VERSION="${VERSION}-ci$(date +'%Y%m%dT%H%M%S')"
+        fi
+        echo "Buid version is $VERSION"
+        find ./src -name "*.csproj" -exec sed -i "s/<Version>[0-9]\+\.[0-9]\+\.[0-9]\+/<Version>$VERSION/g" {} \;
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Test
+      run: dotnet test --no-build --configuration Release --verbosity normal
