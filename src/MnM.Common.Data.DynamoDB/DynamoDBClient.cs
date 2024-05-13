@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MnM.Common.Data.DynamoDB
 {
 	// ReSharper disable once InconsistentNaming
-	public class DynamoDBClient<T, TKey> : IDisposable
+	public class DynamoDBClient<T, TKey> : IDynamoDBClient<T, TKey>
 		where T : class
 		where TKey : notnull
 	{
