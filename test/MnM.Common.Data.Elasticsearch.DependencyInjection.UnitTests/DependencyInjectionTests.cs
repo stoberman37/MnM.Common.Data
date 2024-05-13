@@ -28,8 +28,8 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection.UnitTests
 			services.AddElasticsearchRepository<object>(settings);
 			var provider = services.BuildServiceProvider();
 			var elasticsearchClientFunc = provider.GetService<Func<ElasticsearchClient>>();
-			var commonClientFunc = provider.GetService<Func<CommonElasticsearchClient>>();
-			var repo = provider.GetService<IRepository<CommonElasticsearchClient, object>>();
+			var commonClientFunc = provider.GetService<Func<ICommonElasticsearchClient>>();
+			var repo = provider.GetService<IRepository<ICommonElasticsearchClient, object>>();
 
 			// Assert
 			elasticsearchClientFunc.Should().NotBeNull();

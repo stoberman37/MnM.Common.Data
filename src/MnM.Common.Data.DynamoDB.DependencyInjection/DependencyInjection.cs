@@ -1,8 +1,6 @@
 ﻿using System;
 using Amazon.DynamoDBv2.DataModel;
-using MnM.Common.Data.DynamoDB;
 using Microsoft.Extensions.DependencyInjection;
-using MnM.Common.Data.DynamoDB.DependencyInjection;
 using MnM.Common.Data.Repositories;
 
 namespace MnM.Common.Data.DynamoDB.DependencyInjection
@@ -20,9 +18,9 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection
 			if (options.RetryStrategy == null) throw new ArgumentException("RetryStrategy cannot be null", nameof(options));
 
 			@this.AddSingleton(p => new Func<IDynamoDBContext>(options.DynamoDBContext));
-			@this.AddSingleton<Func<DynamoDBClient<TReturn, TKey>>>(p => 
+			@this.AddSingleton<Func<IDynamoDBClient<TReturn, TKey>>>(p => 
 				 () => new DynamoDBClient<TReturn, TKey>(p.GetService<Func<IDynamoDBContext>>(), options.RetryStrategy()));
-			@this.AddScoped<IRepository<DynamoDBClient<TReturn, TKey>, TReturn>, Repository<DynamoDBClient<TReturn, TKey>, TReturn>>();
+			@this.AddScoped<IRepository<IDynamoDBClient<TReturn, TKey>, TReturn>, Repository<IDynamoDBClient<TReturn, TKey>, TReturn>>();
 			return @this;
 		}
 	}

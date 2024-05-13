@@ -19,9 +19,9 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection
 			var c = new ElasticsearchClient(options.ElasticsearchClientSettings);
 			@this.AddSingleton(c);
 			@this.AddSingleton(p => new Func<ElasticsearchClient>(p.GetService<ElasticsearchClient>));
-			@this.AddSingleton<Func<CommonElasticsearchClient>>(p =>
+			@this.AddSingleton<Func<ICommonElasticsearchClient>>(p =>
 				() => new CommonElasticsearchClient(p.GetService<Func<ElasticsearchClient>>(), options.RetryStrategy()));
-			@this.AddScoped<IRepository<CommonElasticsearchClient, TReturn>, Repository<CommonElasticsearchClient, TReturn>>();
+			@this.AddScoped<IRepository<ICommonElasticsearchClient, TReturn>, Repository<ICommonElasticsearchClient, TReturn>>();
 			return @this;
 		}
 	}
