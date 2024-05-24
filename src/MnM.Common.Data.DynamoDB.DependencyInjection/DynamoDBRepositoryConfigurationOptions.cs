@@ -4,7 +4,7 @@ using System;
 namespace MnM.Common.Data.DynamoDB.DependencyInjection
 {
 
-	public class RepositoryConfigurationOptions
+	public class DynamoDBRepositoryConfigurationOptions
 	{
 		public Func<IDynamoDBContext> DynamoDBContext { get; set; } = () => throw new NotImplementedException();
 

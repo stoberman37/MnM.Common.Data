@@ -8,7 +8,7 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection
 {
 	public static class DependencyInjection
 	{
-		public static IServiceCollection AddElasticsearchRepository<TReturn>(this IServiceCollection @this, RepositoryConfigurationOptions options)
+		public static IServiceCollection AddElasticsearchRepository<TReturn>(this IServiceCollection @this, ElasticsearchRepositoryConfigurationOptions options)
 			where TReturn : class
 		{
 			if (@this == null) throw new ArgumentNullException(nameof(@this));

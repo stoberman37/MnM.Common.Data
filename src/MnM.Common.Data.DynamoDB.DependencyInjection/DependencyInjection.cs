@@ -8,7 +8,7 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection
 	public static class DependencyInjection
 	{
 		// ReSharper disable once InconsistentNaming
-		public static IServiceCollection AddDynamoDBRepository<TReturn, TKey>(this IServiceCollection @this, RepositoryConfigurationOptions options)
+		public static IServiceCollection AddDynamoDBRepository<TReturn, TKey>(this IServiceCollection @this, DynamoDBRepositoryConfigurationOptions options)
 			where TReturn : class
 			where TKey: notnull
 		{

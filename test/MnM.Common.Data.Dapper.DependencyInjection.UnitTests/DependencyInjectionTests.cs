@@ -61,7 +61,7 @@ namespace MnM.Common.Data.Dapper.DependencyInjection.UnitTests
 		{
 			// Arrange
 			var services = new ServiceCollection();
-			var options = new RepositoryConfigurationOptions<DbClient<Exception>>()
+			var options = new DapperRepositoryConfigurationOptions<DbClient<Exception>>()
 			{
 				CaseSensitiveColumnMapping = true,
 				ClientFactory = () => new DbClient<Exception>(Mock.Of<DbConnection>, Mock.Of<IRetryStrategy>())
@@ -83,7 +83,7 @@ namespace MnM.Common.Data.Dapper.DependencyInjection.UnitTests
 		{
 			// Arrange
 			var services = new ServiceCollection();
-			var options = new RepositoryConfigurationOptions<DbClient<Exception>>
+			var options = new DapperRepositoryConfigurationOptions<DbClient<Exception>>
 			{
 				CaseSensitiveColumnMapping = true,
 				ClientFactory = null
@@ -107,7 +107,7 @@ namespace MnM.Common.Data.Dapper.DependencyInjection.UnitTests
 			// Act
 			var a = () =>
 				services.AddDapperRepository<DbClient<Exception>, object>(
-					null as RepositoryConfigurationOptions<DbClient<Exception>>);
+					null as DapperRepositoryConfigurationOptions<DbClient<Exception>>);
 
 			// Assert
 			a.Should().Throw<ArgumentNullException>()

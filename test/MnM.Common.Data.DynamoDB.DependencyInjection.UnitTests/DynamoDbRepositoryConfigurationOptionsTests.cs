@@ -8,13 +8,13 @@ using Xunit.Categories;
 namespace MnM.Common.Data.DynamoDB.DependencyInjection.UnitTests
 {
 	[UnitTest]
-	public class RepositoryConfigurationOptionsTests
+	public class DynamoDbRepositoryConfigurationOptionsTests
 	{
 		[Fact]
 		public void Constructor_Succeeds()
 		{
 			// Arrange & Act
-			var options = new RepositoryConfigurationOptions();
+			var options = new DynamoDBRepositoryConfigurationOptions();
 			var a = () => options.DynamoDBContext();
 			var r = () => options.RetryStrategy();
 
@@ -31,7 +31,7 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection.UnitTests
 		public void SettersAndGetters_Succeed()
 		{
 			// Arrange & Act
-			var options = new RepositoryConfigurationOptions
+			var options = new DynamoDBRepositoryConfigurationOptions
 			{
 				DynamoDBContext = Mock.Of<IDynamoDBContext>,
 				RetryStrategy = Mock.Of<IRetryStrategy>
