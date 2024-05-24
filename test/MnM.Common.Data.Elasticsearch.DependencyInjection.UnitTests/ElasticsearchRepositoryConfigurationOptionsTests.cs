@@ -8,13 +8,13 @@ using Xunit.Categories;
 namespace MnM.Common.Data.Elasticsearch.DependencyInjection.UnitTests
 {
 	[UnitTest]
-	public class RepositoryConfigurationOptionsTests
+	public class ElasticsearchRepositoryConfigurationOptionsTests
 	{
 		[Fact]
 		public void Constructor_Succeeds()
 		{
 			// Arrange & Act
-			var options = new RepositoryConfigurationOptions();
+			var options = new ElasticsearchRepositoryConfigurationOptions();
 			var retry = options.RetryStrategy();
 
 			// Assert
@@ -29,7 +29,7 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection.UnitTests
 		public void SettersAndGetters_Succeeds(ElasticsearchClientSettings settings, Func<IRetryStrategy> retryStrategy)
 		{
 			// Arrange & Act
-			var options = new RepositoryConfigurationOptions
+			var options = new ElasticsearchRepositoryConfigurationOptions
 			{
 				ElasticsearchClientSettings = settings,
 				RetryStrategy = retryStrategy

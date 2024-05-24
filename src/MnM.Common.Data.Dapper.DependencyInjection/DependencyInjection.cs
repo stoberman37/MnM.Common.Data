@@ -21,14 +21,14 @@ namespace MnM.Common.Data.Dapper.DependencyInjection
 			where TClient : class, IDbClient, IDisposable
 			where TReturn : class
 		{
-			return @this.AddDapperRepository<TClient, TReturn>(new RepositoryConfigurationOptions<TClient>
+			return @this.AddDapperRepository<TClient, TReturn>(new DapperRepositoryConfigurationOptions<TClient>
 			{
 				ClientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory)),
 				CaseSensitiveColumnMapping = false
 			});
 		}
 
-		public static IServiceCollection AddDapperRepository<TClient, TReturn>(this IServiceCollection @this, RepositoryConfigurationOptions<TClient> options)
+		public static IServiceCollection AddDapperRepository<TClient, TReturn>(this IServiceCollection @this, DapperRepositoryConfigurationOptions<TClient> options)
 			where TClient : class, IDbClient, IDisposable
 			where TReturn : class
 		{

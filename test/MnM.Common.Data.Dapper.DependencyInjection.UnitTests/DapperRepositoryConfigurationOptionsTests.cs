@@ -7,13 +7,13 @@ using Xunit.Categories;
 namespace MnM.Common.Data.Dapper.DependencyInjection.UnitTests
 {
 	[UnitTest]
-	public class RepositoryConfigurationOptionsTests
+	public class DapperRepositoryConfigurationOptionsTests
 	{
 		[Fact]
 		public void Constructor_Succeeds()
 		{
 			// Arrange & Act
-			var options = new RepositoryConfigurationOptions<IDbClient>();
+			var options = new DapperRepositoryConfigurationOptions<IDbClient>();
 
 			// Assert
 			options.Should().NotBeNull();
@@ -28,7 +28,7 @@ namespace MnM.Common.Data.Dapper.DependencyInjection.UnitTests
 		public void SettersAndGetters_Succeed(bool caseMatching, Func<IDbClient> func)
 		{
 			// Arrange & Act
-			var options = new RepositoryConfigurationOptions<IDbClient>
+			var options = new DapperRepositoryConfigurationOptions<IDbClient>
 			{
 				CaseSensitiveColumnMapping = caseMatching,
 				ClientFactory = func

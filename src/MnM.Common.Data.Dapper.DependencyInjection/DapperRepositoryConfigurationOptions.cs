@@ -2,7 +2,7 @@
 
 namespace MnM.Common.Data.Dapper.DependencyInjection
 {
-	public class RepositoryConfigurationOptions<TClient>
+	public class DapperRepositoryConfigurationOptions<TClient>
 		where TClient : class, IDbClient, IDisposable
 	{
 		public bool CaseSensitiveColumnMapping { get; set; }

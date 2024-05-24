@@ -24,7 +24,7 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection.UnitTests
 			// Arrange
 			// TODO: Figure out how to mock the retry strategy func 
 			var services = new ServiceCollection();
-			var settings = new RepositoryConfigurationOptions
+			var settings = new DynamoDBRepositoryConfigurationOptions
 			{
 				DynamoDBContext = Mock.Of<IDynamoDBContext>,
 				RetryStrategy = Mock.Of<IRetryStrategy>
@@ -48,7 +48,7 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection.UnitTests
 		{
 			// Arrange & Act
 			var a = () =>
-				(null as ServiceCollection).AddDynamoDBRepository<object, object>(new RepositoryConfigurationOptions());
+				(null as ServiceCollection).AddDynamoDBRepository<object, object>(new DynamoDBRepositoryConfigurationOptions());
 
 			// Assert
 			a.Should().NotBeNull();
@@ -74,7 +74,7 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection.UnitTests
 		{
 			// Arrange
 			var services = new ServiceCollection();
-			var settings = new RepositoryConfigurationOptions() { DynamoDBContext = null };
+			var settings = new DynamoDBRepositoryConfigurationOptions() { DynamoDBContext = null };
 
 			// Act
 			var a = () => services.AddDynamoDBRepository<object, object>(settings);
@@ -90,7 +90,7 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection.UnitTests
 		{
 			// Arrange
 			var services = new ServiceCollection();
-			var settings = new RepositoryConfigurationOptions()
+			var settings = new DynamoDBRepositoryConfigurationOptions()
 			{
 				DynamoDBContext = Mock.Of<IDynamoDBContext>,
 				RetryStrategy = null

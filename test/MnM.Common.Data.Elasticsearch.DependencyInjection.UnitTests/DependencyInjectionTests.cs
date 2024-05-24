@@ -21,7 +21,7 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection.UnitTests
 			// Arrange
 			// TODO: Figure out how to mock the retry strategy func 
 			var services = new ServiceCollection();
-			var settings = new RepositoryConfigurationOptions
+			var settings = new ElasticsearchRepositoryConfigurationOptions
 				{ ElasticsearchClientSettings = new ElasticsearchClientSettings(), RetryStrategy = Mock.Of<IRetryStrategy> };
 
 			// Act
@@ -42,7 +42,7 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection.UnitTests
 		{
 			// Arrange & Act
 			var a = () =>
-				(null as ServiceCollection).AddElasticsearchRepository<object>(new RepositoryConfigurationOptions());
+				(null as ServiceCollection).AddElasticsearchRepository<object>(new ElasticsearchRepositoryConfigurationOptions());
 
 			// Assert
 			a.Should().NotBeNull();
@@ -68,7 +68,7 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection.UnitTests
 		{
 			// Arrange
 			var services = new ServiceCollection();
-			var settings = new RepositoryConfigurationOptions() { ElasticsearchClientSettings = null };
+			var settings = new ElasticsearchRepositoryConfigurationOptions() { ElasticsearchClientSettings = null };
 
 			// Act
 			var a = () => services.AddElasticsearchRepository<object>(settings);
@@ -84,7 +84,7 @@ namespace MnM.Common.Data.Elasticsearch.DependencyInjection.UnitTests
 		{
 			// Arrange
 			var services = new ServiceCollection();
-			var settings = new RepositoryConfigurationOptions()
+			var settings = new ElasticsearchRepositoryConfigurationOptions()
 			{
 				ElasticsearchClientSettings = new ElasticsearchClientSettings(),
 				RetryStrategy = null
