@@ -45,7 +45,7 @@ namespace Common.Data.Example
 		public int Id { get; set; }
 	}
 
-	public class SearchContractSpec : IQuerySpecificationAsync<CommonElasticsearchClient, DbModel>
+	public class SearchContractSpec : IQueryListSpecificationAsync<CommonElasticsearchClient, DbModel>
 	{
 		private SearchRequest<DbModel> _search;
 		public SearchContractSpec(string index, int from, int size, string user, string value)
@@ -67,7 +67,7 @@ namespace Common.Data.Example
 		}
 	}
 
-	public class GetDatabaseSpec(string dbName) : IQuerySpecification<IDbClient, DbModel>, IQuerySpecificationAsync<IDbClient, DbModel>
+	public class GetDatabaseSpec(string dbName) : IQueryListSpecification<IDbClient, DbModel>, IQueryListSpecificationAsync<IDbClient, DbModel>
 	{
 		private readonly string _dbName = dbName ?? throw new ArgumentNullException(nameof(dbName));
 
@@ -96,6 +96,20 @@ namespace Common.Data.Example
 
 		}
 	}
+
+	public class MySpec : INonQuerySpecification<IDbClient>
+	{
+		public Action<IDbClient> Execute()
+		{
+			return _ => { };
+		}
+
+		public Action<IDbClient> Execute(CancellationToken cancellationToken)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
 	/*
 	attribute-values "{\":uuid\":{\"S\":\"{ \\\"vin\\\": \\\"ABCDEF0123456GHIJK\\\" }\"},
 	\":index\":{\"S\":\"{ \\\"ipaddress\\\": \\\"1.1.1.2\\\", \\\"created_date\\\": \\\"1639000000\\\" }\"}}"

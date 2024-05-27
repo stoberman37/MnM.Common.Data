@@ -18,7 +18,7 @@ namespace MnM.Common.Data.Repositories
 			Factory = factory ?? throw new ArgumentNullException(nameof(factory));
 		}
 
-	#region Sync
+		#region Sync
 		public void ExecuteDbAction(Action<T> action)
 		{
 			if (action == null) throw new ArgumentNullException(nameof(action));
@@ -26,17 +26,24 @@ namespace MnM.Common.Data.Repositories
 			action(client);
 		}
 
-		public IEnumerable<TReturn> ExecuteDbAction(Func<T, IEnumerable<TReturn>> action)
+		public TReturn ExecuteDbAction(Func<T, TReturn> func)
 		{
-			if (action == null) throw new ArgumentNullException(nameof(action));
+			if (func == null) throw new ArgumentNullException(nameof(func));
 			using var client = Factory();
-			return action(client);
+			return func(client);
+		}
+
+		public IEnumerable<TReturn> ExecuteDbAction(Func<T, IEnumerable<TReturn>> func)
+		{
+			if (func == null) throw new ArgumentNullException(nameof(func));
+			using var client = Factory();
+			return func(client);
 		}
 
 		public void ExecuteDbAction(INonQuerySpecification<T> specification)
 		{
 			if (specification == null) throw new ArgumentNullException(nameof(specification));
-			ExecuteDbAction(specification, default);
+			ExecuteDbAction(specification.Execute());
 		}
 
 		public void ExecuteDbAction(INonQuerySpecification<T> specification, CancellationToken cancellationToken)
@@ -45,22 +52,40 @@ namespace MnM.Common.Data.Repositories
 			ExecuteDbAction(specification.Execute(cancellationToken));
 		}
 
-		public IEnumerable<TReturn> ExecuteDbAction(IQuerySpecification<T, TReturn> specification)
+		public TReturn ExecuteDbAction(IQuerySpecification<T, TReturn> specification)
 		{
 			if (specification == null) throw new ArgumentNullException(nameof(specification));
-			return ExecuteDbAction(specification, default);
+			return (TReturn)ExecuteDbAction(specification.Execute());
 		}
 
-		public IEnumerable<TReturn> ExecuteDbAction(IQuerySpecification<T, TReturn> specification, CancellationToken cancellationToken)
+		public TReturn ExecuteDbAction(IQuerySpecification<T, TReturn> specification, CancellationToken cancellationToken)
+		{
+			if (specification == null) throw new ArgumentNullException(nameof(specification));
+			return (TReturn)ExecuteDbAction(specification.Execute(cancellationToken));
+		}
+
+		public IEnumerable<TReturn> ExecuteDbAction(IQueryListSpecification<T, TReturn> specification)
+		{
+			if (specification == null) throw new ArgumentNullException(nameof(specification));
+			return ExecuteDbAction(specification.Execute());
+		}
+
+		public IEnumerable<TReturn> ExecuteDbAction(IQueryListSpecification<T, TReturn> specification, CancellationToken cancellationToken)
 		{
 			if (specification == null) throw new ArgumentNullException(nameof(specification));
 			return ExecuteDbAction(specification.Execute(cancellationToken));
 		}
-
 		#endregion
 
 		#region Async
 		public Task ExecuteDbActionAsync(Func<T, Task> action)
+		{
+			if (action == null) throw new ArgumentNullException(nameof(action));
+			using var client = Factory();
+			return action(client);
+		}
+
+		public Task<TReturn> ExecuteDbActionAsync(Func<T, Task<TReturn>> action)
 		{
 			if (action == null) throw new ArgumentNullException(nameof(action));
 			using var client = Factory();
@@ -77,7 +102,7 @@ namespace MnM.Common.Data.Repositories
 		public Task ExecuteDbActionAsync(INonQuerySpecificationAsync<T> specification)
 		{
 			if (specification == null) throw new ArgumentNullException(nameof(specification));
-			return ExecuteDbActionAsync(specification, default);
+			return ExecuteDbActionAsync(specification.ExecuteAsync());
 		}
 
 		public Task ExecuteDbActionAsync(INonQuerySpecificationAsync<T> specification, CancellationToken cancellationToken)
@@ -86,13 +111,25 @@ namespace MnM.Common.Data.Repositories
 			return ExecuteDbActionAsync(specification.ExecuteAsync(cancellationToken));
 		}
 
-		public Task<IEnumerable<TReturn>> ExecuteDbActionAsync(IQuerySpecificationAsync<T, TReturn> specification)
+		public Task<TReturn> ExecuteDbActionAsync(IQuerySpecificationAsync<T, TReturn> specification)
 		{
 			if (specification == null) throw new ArgumentNullException(nameof(specification));
-			return ExecuteDbActionAsync(specification, default);
+			return ExecuteDbActionAsync(specification.ExecuteAsync());
 		}
 
-		public Task<IEnumerable<TReturn>> ExecuteDbActionAsync(IQuerySpecificationAsync<T, TReturn> specification, CancellationToken cancellationToken)
+		public Task<TReturn> ExecuteDbActionAsync(IQuerySpecificationAsync<T, TReturn> specification, CancellationToken cancellationToken)
+		{
+			if (specification == null) throw new ArgumentNullException(nameof(specification));
+			return ExecuteDbActionAsync(specification.ExecuteAsync(cancellationToken));
+		}
+
+		public Task<IEnumerable<TReturn>> ExecuteDbActionAsync(IQueryListSpecificationAsync<T, TReturn> specification)
+		{
+			if (specification == null) throw new ArgumentNullException(nameof(specification));
+			return ExecuteDbActionAsync(specification.ExecuteAsync());
+		}
+
+		public Task<IEnumerable<TReturn>> ExecuteDbActionAsync(IQueryListSpecificationAsync<T, TReturn> specification, CancellationToken cancellationToken)
 		{
 			if (specification == null) throw new ArgumentNullException(nameof(specification));
 			return ExecuteDbActionAsync(specification.ExecuteAsync(cancellationToken));
