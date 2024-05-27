@@ -1,6 +1,8 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -74,12 +76,42 @@ namespace MnM.Common.Data.DynamoDB
 			return _retryStrategy.RetryAsync(() => _dynamoDbContext.LoadAsync<T>(toRead, cancellationToken), cancellationToken);
 		}
 
+		public Task<T> ReadAsync(QueryOperationConfig toRead)
+		{
+			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			return _retryStrategy.RetryAsync(async () =>
+				(await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync()).FirstOrDefault());
+		}
+
+		public Task<T> ReadAsync(QueryOperationConfig toRead, CancellationToken cancellationToken)
+		{
+			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			return _retryStrategy.RetryAsync(
+				async () => (await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync(cancellationToken)).FirstOrDefault(),
+					 cancellationToken);
+		}
+
 		public Task UpdateAsync(IEnumerable<T> toSave)
 		{
 			if (toSave == null) throw new ArgumentNullException(nameof(toSave));
 			var batch = _dynamoDbContext.CreateBatchWrite<T>();
 			batch.AddPutItems(toSave);
 			return _retryStrategy.RetryAsync(() => batch.ExecuteAsync());
+		}
+
+		public Task<IEnumerable<T>> ListAsync(QueryOperationConfig toRead)
+		{
+			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			return _retryStrategy.RetryAsync(async () =>
+				(await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync()).AsEnumerable());
+		}
+
+		public Task<IEnumerable<T>> ListAsync(QueryOperationConfig toRead, CancellationToken cancellationToken)
+		{
+			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			return _retryStrategy.RetryAsync(
+				async () => (await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync(cancellationToken)).AsEnumerable(),
+				cancellationToken);
 		}
 
 		public Task UpdateAsync(IEnumerable<T> toSave, CancellationToken cancellationToken)
