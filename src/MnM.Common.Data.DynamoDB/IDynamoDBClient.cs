@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Amazon.DynamoDBv2.DocumentModel;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,5 +20,9 @@ namespace MnM.Common.Data.DynamoDB
 		Task DeleteAsync(T toDelete, CancellationToken cancellationToken);
 		Task<T> ReadAsync(TKey toRead);
 		Task<T> ReadAsync(TKey toRead, CancellationToken cancellationToken);
+		Task<T> ReadAsync(QueryOperationConfig toRead);
+		Task<T> ReadAsync(QueryOperationConfig toRead, CancellationToken cancellationToken);
+		Task<IEnumerable<T>> ListAsync(QueryOperationConfig toRead);
+		Task<IEnumerable<T>> ListAsync(QueryOperationConfig toRead, CancellationToken cancellationToken);
 	}
 }
