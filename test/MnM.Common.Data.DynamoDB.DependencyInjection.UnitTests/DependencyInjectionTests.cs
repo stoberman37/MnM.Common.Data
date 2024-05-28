@@ -34,8 +34,8 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection.UnitTests
 			services.AddDynamoDBRepository<object, object>(settings);
 			var provider = services.BuildServiceProvider();
 			var dynamoDBContext = provider.GetService<Func<IDynamoDBContext>>();
-			var dbClientFunc = provider.GetService<Func<IDynamoDBClient<object, object>>>();
-			var repo = provider.GetService<IRepository<IDynamoDBClient<object, object>, object>>();
+			var dbClientFunc = provider.GetService<Func<IDynamoDBClient<object>>>();
+			var repo = provider.GetService<IRepository<IDynamoDBClient<object>, object>>();
 
 			// Assert
 			dynamoDBContext.Should().NotBeNull();
