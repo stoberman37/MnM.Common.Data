@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace MnM.Common.Data.DynamoDB
 {
-	public interface IDynamoDBClient<T, TKey> : IDisposable
+	public interface IDynamoDBClient<T> : IDisposable
 		where T : class 
-		where TKey : notnull
 	{
 		Task CreateAsync(T toSave);
 		Task CreateAsync(T toSave, CancellationToken cancellationToken);
@@ -18,8 +17,10 @@ namespace MnM.Common.Data.DynamoDB
 		Task UpdateAsync(IEnumerable<T> toSave, CancellationToken cancellationToken);
 		Task DeleteAsync(T toDelete);
 		Task DeleteAsync(T toDelete, CancellationToken cancellationToken);
-		Task<T> ReadAsync(TKey toRead);
-		Task<T> ReadAsync(TKey toRead, CancellationToken cancellationToken);
+		Task<T> ReadAsync(object hashKey);
+		Task<T> ReadAsync(object hashKey, CancellationToken cancellationToken);
+		Task<T> ReadAsync(object hashKey, object rangeKey);
+		Task<T> ReadAsync(object hashKey, object rangeKey, CancellationToken cancellationToken);
 		Task<T> ReadAsync(QueryOperationConfig toRead);
 		Task<T> ReadAsync(QueryOperationConfig toRead, CancellationToken cancellationToken);
 		Task<IEnumerable<T>> ListAsync(QueryOperationConfig toRead);

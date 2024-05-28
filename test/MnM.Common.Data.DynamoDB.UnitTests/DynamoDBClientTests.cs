@@ -22,7 +22,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 			static IDynamoDBContext DbContextFactory() => new Mock<IDynamoDBContext>().Object;
 
 			// Act
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Assert
 			client.Should().NotBeNull();
@@ -36,7 +36,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 			var retryStrategy = new Mock<IRetryStrategy>();
 
 			// Act
-			var client = new DynamoDBClient<object, object>(DbContextFactory, retryStrategy.Object);
+			var client = new DynamoDBClient<object>(DbContextFactory, retryStrategy.Object);
 
 			// Assert
 			client.Should().NotBeNull();
@@ -47,7 +47,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 		public void ConstructorParametersTest(string missingParameter, Func<IDynamoDBContext> factory, IRetryStrategy retryStrategy)
 		{
 			// Arrange & Act
-			var a = () => new DynamoDBClient<object, object>(factory, retryStrategy);
+			var a = () => new DynamoDBClient<object>(factory, retryStrategy);
 
 			// Assert
 			a.Should().Throw<ArgumentNullException>()
@@ -60,7 +60,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 		{
 			// Arrange
 			static IDynamoDBContext DbContextFactory() => new Mock<IDynamoDBContext>().Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			var a = () => client.CreateAsync(null);
@@ -78,7 +78,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 			var o = new object();
 			context.Setup(c => c.SaveAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()));
 			IDynamoDBContext DbContextFactory() => context.Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			await client.CreateAsync(new object());
@@ -92,7 +92,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 		{
 			// Arrange
 			static IDynamoDBContext DbContextFactory() => new Mock<IDynamoDBContext>().Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			var a = () => client.UpdateAsync(null as object);
@@ -111,7 +111,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 			var o = new object();
 			context.Setup(c => c.SaveAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()));
 			IDynamoDBContext DbContextFactory() => context.Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			await client.UpdateAsync(new object());
@@ -125,7 +125,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 		{
 			// Arrange
 			static IDynamoDBContext DbContextFactory() => new Mock<IDynamoDBContext>().Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			var a = () => client.UpdateAsync(null);
@@ -148,7 +148,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 		//	});
 		//	var o = new List<object> { 1, 2, 3 };
 		//	IDynamoDBContext DbContextFactory() => context.Object;
-		//	var client = new DynamoDBClient<object, object>(DbContextFactory);
+		//	var client = new DynamoDBClient<object>(DbContextFactory);
 
 		//	// Act
 		//	await client.UpdateAsync(o);
@@ -162,7 +162,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 		{
 			// Arrange
 			static IDynamoDBContext DbContextFactory() => new Mock<IDynamoDBContext>().Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			var a = () => client.DeleteAsync(null);
@@ -181,7 +181,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 			var o = new object();
 			context.Setup(c => c.DeleteAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()));
 			IDynamoDBContext DbContextFactory() => context.Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			await client.DeleteAsync(new object());
@@ -195,7 +195,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 		{
 			// Arrange
 			static IDynamoDBContext DbContextFactory() => new Mock<IDynamoDBContext>().Object;
-			var client = new DynamoDBClient<object, object>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			var a = () => client.ReadAsync(null);
@@ -214,7 +214,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 			var o = new object();
 			context.Setup(c => c.LoadAsync<object>(It.IsAny<string>(), new CancellationToken())).ReturnsAsync(o);
 			IDynamoDBContext DbContextFactory() => context.Object;
-			var client = new DynamoDBClient<object, string>(DbContextFactory);
+			var client = new DynamoDBClient<object>(DbContextFactory);
 
 			// Act
 			var result = await client.ReadAsync("test");
@@ -244,7 +244,7 @@ namespace MnM.Common.Data.DynamoDB.UnitTests
 			// Act
 			var a = () =>
 			{
-				using var client = new DynamoDBClient<object, object>(dbContextFactory, retryStrategy);
+				using var client = new DynamoDBClient<object>(dbContextFactory, retryStrategy);
 			};
 
 			// Assert

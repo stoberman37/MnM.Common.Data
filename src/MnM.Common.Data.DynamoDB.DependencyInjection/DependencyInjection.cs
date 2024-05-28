@@ -18,9 +18,9 @@ namespace MnM.Common.Data.DynamoDB.DependencyInjection
 			if (options.RetryStrategy == null) throw new ArgumentException("RetryStrategy cannot be null", nameof(options));
 
 			@this.AddSingleton(p => new Func<IDynamoDBContext>(options.DynamoDBContext));
-			@this.AddSingleton<Func<IDynamoDBClient<TReturn, TKey>>>(p => 
-				 () => new DynamoDBClient<TReturn, TKey>(p.GetService<Func<IDynamoDBContext>>(), options.RetryStrategy()));
-			@this.AddScoped<IRepository<IDynamoDBClient<TReturn, TKey>, TReturn>, Repository<IDynamoDBClient<TReturn, TKey>, TReturn>>();
+			@this.AddSingleton<Func<IDynamoDBClient<TReturn>>>(p => 
+				 () => new DynamoDBClient<TReturn>(p.GetService<Func<IDynamoDBContext>>(), options.RetryStrategy()));
+			@this.AddScoped<IRepository<IDynamoDBClient<TReturn>, TReturn>, Repository<IDynamoDBClient<TReturn>, TReturn>>();
 			return @this;
 		}
 	}

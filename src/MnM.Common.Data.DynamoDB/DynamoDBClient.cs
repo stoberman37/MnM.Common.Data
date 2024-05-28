@@ -3,15 +3,15 @@ using Amazon.DynamoDBv2.DocumentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace MnM.Common.Data.DynamoDB
 {
 	// ReSharper disable once InconsistentNaming
-	public class DynamoDBClient<T, TKey> : IDynamoDBClient<T, TKey>
+	public class DynamoDBClient<T> : IDynamoDBClient<T>
 		where T : class
-		where TKey : notnull
 	{
 		private readonly IDynamoDBContext _dynamoDbContext;
 		private readonly IRetryStrategy _retryStrategy;
@@ -64,28 +64,41 @@ namespace MnM.Common.Data.DynamoDB
 			return _retryStrategy.RetryAsync(() => _dynamoDbContext.DeleteAsync(toDelete, cancellationToken), cancellationToken);
 		}
 
-		public Task<T> ReadAsync(TKey toRead)
+		public Task<T> ReadAsync(object hashKey)
 		{
-			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
-			return _retryStrategy.RetryAsync(() => _dynamoDbContext.LoadAsync<T>(toRead));
+			if (hashKey == null) throw new ArgumentNullException(nameof(hashKey));
+			return _retryStrategy.RetryAsync(() => _dynamoDbContext.LoadAsync<T>(hashKey));
 		}
 
-		public Task<T> ReadAsync(TKey toRead, CancellationToken cancellationToken)
+		public Task<T> ReadAsync(object hashKey, CancellationToken cancellationToken)
 		{
-			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
-			return _retryStrategy.RetryAsync(() => _dynamoDbContext.LoadAsync<T>(toRead, cancellationToken), cancellationToken);
+			if (hashKey == null) throw new ArgumentNullException(nameof(hashKey));
+			return _retryStrategy.RetryAsync(() => _dynamoDbContext.LoadAsync<T>(hashKey, cancellationToken), cancellationToken);
+		}
+
+		public Task<T> ReadAsync(object hashKey, object rangeKey)
+		{
+			if (hashKey == null) throw new ArgumentNullException(nameof(hashKey));
+			return _retryStrategy.RetryAsync(() => _dynamoDbContext.LoadAsync<T>(hashKey, rangeKey));
+		}
+
+		public Task<T> ReadAsync(object hashKey, object rangeKey, CancellationToken cancellationToken)
+		{
+			if (hashKey == null) throw new ArgumentNullException(nameof(hashKey));
+			return _retryStrategy.RetryAsync(() => _dynamoDbContext.LoadAsync<T>(hashKey, rangeKey, cancellationToken),
+				cancellationToken);
 		}
 
 		public Task<T> ReadAsync(QueryOperationConfig toRead)
 		{
-			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			if (toRead == null || toRead.Equals(default(QueryOperationConfig))) throw new ArgumentNullException(nameof(toRead));
 			return _retryStrategy.RetryAsync(async () =>
 				(await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync()).FirstOrDefault());
 		}
 
 		public Task<T> ReadAsync(QueryOperationConfig toRead, CancellationToken cancellationToken)
 		{
-			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			if (toRead == null || toRead.Equals(default(QueryOperationConfig))) throw new ArgumentNullException(nameof(toRead));
 			return _retryStrategy.RetryAsync(
 				async () => (await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync(cancellationToken)).FirstOrDefault(),
 					 cancellationToken);
@@ -101,14 +114,14 @@ namespace MnM.Common.Data.DynamoDB
 
 		public Task<IEnumerable<T>> ListAsync(QueryOperationConfig toRead)
 		{
-			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			if (toRead == null || toRead.Equals(default(QueryOperationConfig))) throw new ArgumentNullException(nameof(toRead));
 			return _retryStrategy.RetryAsync(async () =>
 				(await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync()).AsEnumerable());
 		}
 
 		public Task<IEnumerable<T>> ListAsync(QueryOperationConfig toRead, CancellationToken cancellationToken)
 		{
-			if (toRead == null || toRead.Equals(default(TKey))) throw new ArgumentNullException(nameof(toRead));
+			if (toRead == null || toRead.Equals(default(QueryOperationConfig))) throw new ArgumentNullException(nameof(toRead));
 			return _retryStrategy.RetryAsync(
 				async () => (await _dynamoDbContext.FromQueryAsync<T>(toRead).GetRemainingAsync(cancellationToken)).AsEnumerable(),
 				cancellationToken);
