@@ -14,69 +14,133 @@ All diagrams use Mermaid syntax.
 
 ```mermaid
 flowchart TB
+
+%% ===========================
+%% Top-level: Application
+%% ===========================
 subgraph App[Application Layer]
-    Svc[Application Services]
+    Svc[Application Services\n(Use Cases, APIs, etc.)]
 end
+
+%% ===========================
+%% Repository Layer
+%% ===========================
 subgraph RepoLayer[Repository Layer]
     RepoIface[IRepository<TClient, TReturn>]
     RepoImpl[Repository<TClient, TReturn>]
-    Spec[Specifications]
+    Spec[Specifications\n(IQuerySpecification,\nIQueryListSpecification,\nINonQuerySpecification\n+ async variants)]
+    
     RepoIface --> RepoImpl
     RepoImpl --> Spec
 end
+
 Svc --> RepoIface
+
+%% ===========================
+%% Concrete Client Types
+%% ===========================
 subgraph Clients[Client Abstractions]
-    subgraph Sql[Dapper / SQL]
+    subgraph SqlClients[Relational / Dapper]
         IDb[IDbClient]
         DbClient[DbClient<TException>]
         SqlDb[SqlServerDbClient]
+        
         IDb <.. DbClient
         DbClient <.. SqlDb
     end
-    subgraph Dyn[DynamoDB]
+
+    subgraph DynamoClients[DynamoDB]
         IDyn[IDynamoDBClient<T>]
         DynClient[DynamoDBClient<T>]
+        
         IDyn <.. DynClient
     end
-    subgraph Es[Elasticsearch]
+
+    subgraph EsClients[Elasticsearch]
         IEs[ICommonElasticsearchClient]
         EsClient[CommonElasticsearchClient]
+        
         IEs <.. EsClient
     end
 end
+
 RepoImpl --> IDb
 RepoImpl --> IDyn
 RepoImpl --> IEs
+
+%% ===========================
+%% Underlying Providers
+%% ===========================
 subgraph Providers[Underlying Providers]
-    DBConn[DbConnection]
-    Dapper[Dapper Engine]
+    DBConn[DbConnection\n(SqlConnection, etc.)]
+    Dapper[Dapper + Type Mapping\n(ColumnAttributeTypeMapper,\nFallbackTypeMapper,\nParameterManager,\nCrudMethod + Attributes)]
+    
     DynCtx[IDynamoDBContext]
+    AwsDDB[AWS DynamoDB\n(Service)]
+    
     EsNet[ElasticsearchClient]
+    EsCluster[Elasticsearch Cluster]
 end
+
 DbClient --> DBConn
 DbClient --> Dapper
+
 DynClient --> DynCtx
+DynCtx --> AwsDDB
+
 EsClient --> EsNet
-subgraph Retry[Retry Strategies]
+EsNet --> EsCluster
+
+%% ===========================
+%% Retry Strategies
+%% ===========================
+subgraph Retry[Retry Strategy Layer]
     IRetry[IRetryStrategy]
-    RetryBase[RetryStrategyBase]
+    RetryBase[RetryStrategyBase<TException>]
     RetryCount[RetryStrategyByCount]
     SqlRetry[SqlServerRetryStrategy]
 end
+
 DbClient --> IRetry
 DynClient --> IRetry
 EsClient --> IRetry
+
 IRetry <.. RetryBase
 RetryBase <.. RetryCount
 RetryBase <.. SqlRetry
-subgraph DI[Dependency Injection Modules]
-    DapperDI[AddDapperRepository]
-    DynDI[AddDynamoDBRepository]
-    EsDI[AddElasticsearchRepository]
+
+%% ===========================
+%% DI / Configuration
+%% ===========================
+subgraph DI[Dependency Injection / Configuration]
+    subgraph DapperDI[Dapper / SQL Server DI]
+        DapperOpts[DapperRepositoryConfigurationOptions<TClient>\n(ClientFactory,\nCaseSensitiveColumnMapping)]
+        AddDapperRepo[AddDapperRepository<\nTClient, TReturn>]
+    end
+
+    subgraph DynDI[DynamoDB DI]
+        DynOpts[DynamoDBRepositoryConfigurationOptions\n(DynamoDBContext,\nRetryStrategy)]
+        AddDynRepo[AddDynamoDBRepository<\nTReturn, TKey>]
+    end
+
+    subgraph EsDI[Elasticsearch DI]
+        EsOpts[ElasticsearchRepositoryConfigurationOptions\n(ElasticsearchClientSettings,\nRetryStrategy)]
+        AddEsRepo[AddElasticsearchRepository<TReturn>]
+    end
 end
-DapperDI --> RepoIface
-DynDI --> RepoIface
-EsDI --> RepoIface
+
+AddDapperRepo --> RepoIface
+AddDapperRepo --> DbClient
+
+AddDynRepo --> RepoIface
+AddDynRepo --> DynClient
+
+AddEsRepo --> RepoIface
+AddEsRepo --> EsClient
+
+DapperOpts --> AddDapperRepo
+DynOpts --> AddDynRepo
+EsOpts --> AddEsRepo
 ```
 
 ---
