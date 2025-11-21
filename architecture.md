@@ -6,198 +6,158 @@ This document provides a full architectural overview of the MnM.Common.Data ecos
 - DynamoDB
 - Elasticsearch
 
-All diagrams use Mermaid syntax.
+All diagrams use Mermaid syntax and are written to be compatible with GitHub's Mermaid renderer (only `-->` arrows, simple labels).
 
 ---
 
-# 1. Full System Architecture
+## 1. Full System Architecture
 
 ```mermaid
 flowchart TB
+  subgraph Application
+    AppServices[Application services]
+  end
 
-%% ===========================
-%% Top-level: Application
-%% ===========================
-subgraph App[Application Layer]
-    Svc[Application Services\n(Use Cases, APIs, etc.)]
-end
-
-%% ===========================
-%% Repository Layer
-%% ===========================
-subgraph RepoLayer[Repository Layer]
-    RepoIface[IRepository<TClient, TReturn>]
-    RepoImpl[Repository<TClient, TReturn>]
-    Spec[Specifications\n(IQuerySpecification,\nIQueryListSpecification,\nINonQuerySpecification\n+ async variants)]
-    
+  subgraph RepositoryLayer[Repository layer]
+    RepoIface[IRepository&lt;TClient, TReturn&gt;]
+    RepoImpl[Repository&lt;TClient, TReturn&gt;]
+    Specs[Specifications]
     RepoIface --> RepoImpl
-    RepoImpl --> Spec
-end
+    RepoImpl --> Specs
+  end
 
-Svc --> RepoIface
+  AppServices --> RepoIface
 
-%% ===========================
-%% Concrete Client Types
-%% ===========================
-subgraph Clients[Client Abstractions]
-    subgraph SqlClients[Relational / Dapper]
-        IDb[IDbClient]
-        DbClient[DbClient<TException>]
-        SqlDb[SqlServerDbClient]
-        
-        IDb <.. DbClient
-        DbClient <.. SqlDb
+  subgraph Clients[Client abstractions]
+    subgraph Sql[SQL / Dapper]
+      IDb[IDbClient]
+      DbClient[DbClient&lt;TException&gt;]
+      SqlDb[SqlServerDbClient]
+      IDb --> DbClient
+      DbClient --> SqlDb
     end
 
-    subgraph DynamoClients[DynamoDB]
-        IDyn[IDynamoDBClient<T>]
-        DynClient[DynamoDBClient<T>]
-        
-        IDyn <.. DynClient
+    subgraph Dynamo[DynamoDB]
+      IDyn[IDynamoDBClient&lt;T&gt;]
+      DynClient[DynamoDBClient&lt;T&gt;]
+      IDyn --> DynClient
     end
 
-    subgraph EsClients[Elasticsearch]
-        IEs[ICommonElasticsearchClient]
-        EsClient[CommonElasticsearchClient]
-        
-        IEs <.. EsClient
+    subgraph Elastic[Elasticsearch]
+      IEs[ICommonElasticsearchClient]
+      EsClient[CommonElasticsearchClient]
+      IEs --> EsClient
     end
-end
+  end
 
-RepoImpl --> IDb
-RepoImpl --> IDyn
-RepoImpl --> IEs
+  RepoImpl --> IDb
+  RepoImpl --> IDyn
+  RepoImpl --> IEs
 
-%% ===========================
-%% Underlying Providers
-%% ===========================
-subgraph Providers[Underlying Providers]
-    DBConn[DbConnection\n(SqlConnection, etc.)]
-    Dapper[Dapper + Type Mapping\n(ColumnAttributeTypeMapper,\nFallbackTypeMapper,\nParameterManager,\nCrudMethod + Attributes)]
-    
+  subgraph Providers[Underlying providers]
+    DbConn[DbConnection]
+    Dapper[Dapper + type mapping]
     DynCtx[IDynamoDBContext]
-    AwsDDB[AWS DynamoDB\n(Service)]
-    
     EsNet[ElasticsearchClient]
-    EsCluster[Elasticsearch Cluster]
-end
+  end
 
-DbClient --> DBConn
-DbClient --> Dapper
+  DbClient --> DbConn
+  DbClient --> Dapper
+  DynClient --> DynCtx
+  EsClient --> EsNet
 
-DynClient --> DynCtx
-DynCtx --> AwsDDB
-
-EsClient --> EsNet
-EsNet --> EsCluster
-
-%% ===========================
-%% Retry Strategies
-%% ===========================
-subgraph Retry[Retry Strategy Layer]
+  subgraph Retry[Retry strategies]
     IRetry[IRetryStrategy]
-    RetryBase[RetryStrategyBase<TException>]
+    RetryBase[RetryStrategyBase&lt;TException&gt;]
     RetryCount[RetryStrategyByCount]
     SqlRetry[SqlServerRetryStrategy]
-end
+  end
 
-DbClient --> IRetry
-DynClient --> IRetry
-EsClient --> IRetry
+  DbClient --> IRetry
+  DynClient --> IRetry
+  EsClient --> IRetry
 
-IRetry <.. RetryBase
-RetryBase <.. RetryCount
-RetryBase <.. SqlRetry
+  IRetry --> RetryBase
+  RetryBase --> RetryCount
+  RetryBase --> SqlRetry
 
-%% ===========================
-%% DI / Configuration
-%% ===========================
-subgraph DI[Dependency Injection / Configuration]
-    subgraph DapperDI[Dapper / SQL Server DI]
-        DapperOpts[DapperRepositoryConfigurationOptions<TClient>\n(ClientFactory,\nCaseSensitiveColumnMapping)]
-        AddDapperRepo[AddDapperRepository<\nTClient, TReturn>]
-    end
+  subgraph DI[Dependency injection]
+    DapperDI[AddDapperRepository]
+    DynamoDI[AddDynamoDBRepository]
+    EsDI[AddElasticsearchRepository]
+  end
 
-    subgraph DynDI[DynamoDB DI]
-        DynOpts[DynamoDBRepositoryConfigurationOptions\n(DynamoDBContext,\nRetryStrategy)]
-        AddDynRepo[AddDynamoDBRepository<\nTReturn, TKey>]
-    end
-
-    subgraph EsDI[Elasticsearch DI]
-        EsOpts[ElasticsearchRepositoryConfigurationOptions\n(ElasticsearchClientSettings,\nRetryStrategy)]
-        AddEsRepo[AddElasticsearchRepository<TReturn>]
-    end
-end
-
-AddDapperRepo --> RepoIface
-AddDapperRepo --> DbClient
-
-AddDynRepo --> RepoIface
-AddDynRepo --> DynClient
-
-AddEsRepo --> RepoIface
-AddEsRepo --> EsClient
-
-DapperOpts --> AddDapperRepo
-DynOpts --> AddDynRepo
-EsOpts --> AddEsRepo
+  DapperDI --> RepoIface
+  DynamoDI --> RepoIface
+  EsDI --> RepoIface
 ```
 
 ---
 
-# 2. SQL Server / Dapper Architecture
+## 2. SQL Server / Dapper Architecture
 
 ```mermaid
 flowchart LR
-A[Application] --> Repo[IRepository<IDbClient, T>]
-Repo --> DbClient[DbClient<TException>]
-DbClient --> SqlDb[SqlServerDbClient]
-SqlDb --> Conn[DbConnection (SqlConnection)]
-DbClient --> Dapper[Dapper Mapping Layer]
-Dapper --> ColumnMap[ColumnAttributeTypeMapper]
-Dapper --> FallbackMap[FallbackTypeMapper]
-Dapper --> Params[ParameterManager]
-DbClient --> Retry[IRetryStrategy]
-Retry --> RetryBase[RetryStrategyBase]
-RetryBase --> SqlRetry[SqlServerRetryStrategy]
+  App[Application] --> Repo[IRepository&lt;IDbClient, TReturn&gt;]
+  Repo --> DbClient[DbClient&lt;TException&gt;]
+  DbClient --> SqlDb[SqlServerDbClient]
+  SqlDb --> Conn[DbConnection (SqlConnection)]
+
+  DbClient --> Dapper[Dapper + mapping]
+  Dapper --> ColumnMap[ColumnAttributeTypeMapper]
+  Dapper --> FallbackMap[FallbackTypeMapper]
+  Dapper --> Params[ParameterManager]
+  Dapper --> Crud[CrudMethod + attributes]
+
+  DbClient --> Retry[IRetryStrategy]
+  Retry --> RetryBase[RetryStrategyBase&lt;TException&gt;]
+  RetryBase --> SqlRetry[SqlServerRetryStrategy]
 ```
 
 ---
 
-# 3. DynamoDB Architecture
+## 3. DynamoDB Architecture
 
 ```mermaid
 flowchart LR
-App[Application] --> Repo[IRepository<IDynamoDBClient<T>, T>]
-Repo --> DynClient[DynamoDBClient<T>]
-DynClient --> Ctx[IDynamoDBContext]
-DynClient --> Retry[IRetryStrategy]
-Retry --> RetryBase[RetryStrategyBase]
-RetryBase --> RetryCount[RetryStrategyByCount]
-Ctx --> Dynamo[AWS DynamoDB Service]
+  App[Application] --> Repo[IRepository&lt;IDynamoDBClient&lt;T&gt;, TReturn&gt;]
+  Repo --> DynClient[DynamoDBClient&lt;T&gt;]
+
+  DynClient --> DynInterface[IDynamoDBClient&lt;T&gt;]
+  DynClient --> Ctx[IDynamoDBContext]
+
+  DynClient --> Retry[IRetryStrategy]
+  Retry --> RetryBase[RetryStrategyBase&lt;TException&gt;]
+  RetryBase --> RetryCount[RetryStrategyByCount]
+
+  Ctx --> DynamoService[AWS DynamoDB service]
 ```
 
 ---
 
-# 4. Elasticsearch Architecture
+## 4. Elasticsearch Architecture
 
 ```mermaid
 flowchart LR
-App[Application] --> Repo[IRepository<ICommonElasticsearchClient, T>]
-Repo --> EsClient[CommonElasticsearchClient]
-EsClient --> EsNet[ElasticsearchClient]
-EsClient --> Retry[IRetryStrategy]
-Retry --> RetryBase[RetryStrategyBase]
-RetryBase --> RetryCount[RetryStrategyByCount]
-EsNet --> Cluster[Elasticsearch Cluster]
+  App[Application] --> Repo[IRepository&lt;ICommonElasticsearchClient, TReturn&gt;]
+  Repo --> EsClient[CommonElasticsearchClient]
+
+  EsClient --> EsInterface[ICommonElasticsearchClient]
+  EsClient --> EsNet[ElasticsearchClient]
+
+  EsClient --> Retry[IRetryStrategy]
+  Retry --> RetryBase[RetryStrategyBase&lt;TException&gt;]
+  RetryBase --> RetryCount[RetryStrategyByCount]
+
+  EsNet --> Cluster[Elasticsearch cluster]
 ```
 
 ---
 
-# Summary
+## Summary
 
-This architecture demonstrates a highly modular, consistent, and testable data access system:
+This architecture demonstrates a modular, consistent, and testable data access system:
 
-- All technologies share **common retry logic**, **common repository pattern**, and **common DI conventions**.
-- Each backend (SQL Server, DynamoDB, Elasticsearch) has a 1st-class, dedicated client abstraction.
-- Dapper, DynamoDBContext, and ElasticsearchClient remain safely encapsulated behind these abstractions.
+- All technologies share common retry logic, a common repository pattern, and DI conventions.
+- Each backend (SQL Server, DynamoDB, Elasticsearch) has its own client abstraction.
+- Low-level providers (Dapper, DynamoDBContext, ElasticsearchClient) are encapsulated behind these abstractions.
