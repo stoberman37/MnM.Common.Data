@@ -49,9 +49,8 @@ jobs:
 
     - name: Pack
       run: |
-        mkdir ./nuget
-        find ./src -name "*.csproj" -exec dotnet pack --configuration Release --no-build --output ./nuget {} \ ;
-
+        mkdir -p ./nuget
+        find ./src -name "*.csproj" -exec dotnet pack --configuration Release --no-build --output ./nuget {} \;
     - name: Install NuGet CLI
       run: |
         dotnet tool install --global NuGet.CommandLine
