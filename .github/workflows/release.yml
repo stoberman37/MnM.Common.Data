@@ -26,7 +26,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
 
     - name: Set version
       run: |
@@ -49,12 +49,11 @@ jobs:
 
     - name: Pack
       run: |
-        mkdir ./nuget
+        mkdir -p ./nuget
         find ./src -name "*.csproj" -exec dotnet pack --configuration Release --no-build --output ./nuget {} \;
 
     - name: Publish NuGet packages
-      uses: dansiegel/publish-nuget@v1.2
-      with:
-        filename: './nuget/*.nupkg'
-        apiKey: ${{ secrets.NUGET_API_KEY }}
-        feedUrl: 'https://api.nuget.org/v3/index.json'
+      run: dotnet nuget push "./nuget/*.nupkg" \
+            --api-key "${{ secrets.NUGET_API_KEY }}" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate
