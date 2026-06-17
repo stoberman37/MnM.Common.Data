@@ -43,7 +43,7 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal --logger trx --results-directory TestResults
+      run: dotnet test --no-build --configuration Release --verbosity normal --logger trx --results-directory TestResults --collect:"XPlat Code Coverage"
 
     - name: Upload test results
       uses: dorny/test-reporter@v2
@@ -53,6 +53,24 @@ jobs:
         path: TestResults/*.trx
         reporter: dotnet-trx
 
+    - name: Generate coverage report
+      uses: danielpalme/ReportGenerator-GitHub-Action@5
+      with:
+        reports: TestResults/**/coverage.cobertura.xml
+        targetdir: CoverageReport
+        reporttypes: MarkdownSummaryGithub;Html
+
+    - name: Write coverage to job summary
+      if: always()
+      run: cat CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload coverage report artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report
+        path: CoverageReport/
+
     - name: Setup Snyk
       uses: snyk/actions/setup@master
 
@@ -60,7 +78,27 @@ jobs:
       continue-on-error: true
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      run: snyk test --severity-threshold=high --all-projects --sarif-file-output=snyk-oss.sarif
+      run: |
+        snyk test --severity-threshold=high --all-projects \
+          --sarif-file-output=snyk-oss.sarif \
+          --json-file-output=snyk-oss.json || true
+
+    - name: Snyk OSS summary
+      if: always()
+      run: |
+        echo "## 🔒 Snyk OSS Scan" >> $GITHUB_STEP_SUMMARY
+        if [ -f snyk-oss.json ]; then
+          CRITICAL=$(jq '[.vulnerabilities[] | select(.severity=="critical")] | length' snyk-oss.json)
+          HIGH=$(jq '[.vulnerabilities[] | select(.severity=="high")] | length' snyk-oss.json)
+          MEDIUM=$(jq '[.vulnerabilities[] | select(.severity=="medium")] | length' snyk-oss.json)
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ No Snyk OSS results found" >> $GITHUB_STEP_SUMMARY
+        fi
 
     - name: Upload Snyk OSS results to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v4
@@ -73,7 +111,25 @@ jobs:
       continue-on-error: true
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      run: snyk code test --severity-threshold=high --sarif-file-output=snyk-code.sarif
+      run: |
+        snyk code test --severity-threshold=high \
+          --sarif-file-output=snyk-code.sarif \
+          --json-file-output=snyk-code.json || true
+
+    - name: Snyk Code summary
+      if: always()
+      run: |
+        echo "## 🛡️ Snyk Code Scan (SAST)" >> $GITHUB_STEP_SUMMARY
+        if [ -f snyk-code.json ]; then
+          HIGH=$(jq '[.runs[].results[] | select(.level=="error")] | length' snyk-code.json)
+          MEDIUM=$(jq '[.runs[].results[] | select(.level=="warning")] | length' snyk-code.json)
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ No Snyk Code results found" >> $GITHUB_STEP_SUMMARY
+        fi
 
     - name: Upload Snyk Code results to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v4
