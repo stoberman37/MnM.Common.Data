@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     permissions:
       contents: read
       checks: write
@@ -43,23 +46,38 @@ jobs:
       run: dotnet test --no-build --configuration Release --verbosity normal --logger trx --results-directory TestResults
 
     - name: Upload test results
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2
       if: always()
       with:
         name: .NET Tests
         path: TestResults/*.trx
         reporter: dotnet-trx
 
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/dotnet@master
+    - name: Setup Snyk
+      uses: snyk/actions/setup@master
+
+    - name: Snyk - Open Source dependency scan
       continue-on-error: true
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high --all-projects --sarif-file-output=snyk.sarif
+      run: snyk test --severity-threshold=high --all-projects --sarif-file-output=snyk-oss.sarif
 
-    - name: Upload Snyk results to GitHub Code Scanning
-      uses: github/codeql-action/upload-sarif@v3
+    - name: Upload Snyk OSS results to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v4
       if: always()
       with:
-        sarif_file: snyk.sarif
+        sarif_file: snyk-oss.sarif
+        category: snyk-oss
+
+    - name: Snyk - Code scan (SAST)
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      run: snyk code test --severity-threshold=high --sarif-file-output=snyk-code.sarif
+
+    - name: Upload Snyk Code results to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v4
+      if: always()
+      with:
+        sarif_file: snyk-code.sarif
+        category: snyk-code
