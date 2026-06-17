@@ -55,6 +55,7 @@ jobs:
 
     - name: Generate coverage report
       uses: danielpalme/ReportGenerator-GitHub-Action@5
+      if: always()
       with:
         reports: TestResults/**/coverage.cobertura.xml
         targetdir: CoverageReport
@@ -85,12 +86,13 @@ jobs:
 
     - name: Snyk OSS summary
       if: always()
+      continue-on-error: true
       run: |
         echo "## 🔒 Snyk OSS Scan" >> $GITHUB_STEP_SUMMARY
         if [ -f snyk-oss.json ]; then
-          CRITICAL=$(jq '[.vulnerabilities[] | select(.severity=="critical")] | length' snyk-oss.json)
-          HIGH=$(jq '[.vulnerabilities[] | select(.severity=="high")] | length' snyk-oss.json)
-          MEDIUM=$(jq '[.vulnerabilities[] | select(.severity=="medium")] | length' snyk-oss.json)
+          CRITICAL=$(jq '[.[].vulnerabilities[] | select(.severity=="critical")] | length' snyk-oss.json || echo "0")
+          HIGH=$(jq '[.[].vulnerabilities[] | select(.severity=="high")] | length' snyk-oss.json || echo "0")
+          MEDIUM=$(jq '[.[].vulnerabilities[] | select(.severity=="medium")] | length' snyk-oss.json || echo "0")
           echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
@@ -103,6 +105,7 @@ jobs:
     - name: Upload Snyk OSS results to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v4
       if: always()
+      continue-on-error: true
       with:
         sarif_file: snyk-oss.sarif
         category: snyk-oss
@@ -118,11 +121,12 @@ jobs:
 
     - name: Snyk Code summary
       if: always()
+      continue-on-error: true
       run: |
         echo "## 🛡️ Snyk Code Scan (SAST)" >> $GITHUB_STEP_SUMMARY
         if [ -f snyk-code.json ]; then
-          HIGH=$(jq '[.runs[].results[] | select(.level=="error")] | length' snyk-code.json)
-          MEDIUM=$(jq '[.runs[].results[] | select(.level=="warning")] | length' snyk-code.json)
+          HIGH=$(jq '[.runs[].results[] | select(.level=="error")] | length' snyk-code.json || echo "0")
+          MEDIUM=$(jq '[.runs[].results[] | select(.level=="warning")] | length' snyk-code.json || echo "0")
           echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
@@ -134,6 +138,7 @@ jobs:
     - name: Upload Snyk Code results to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v4
       if: always()
+      continue-on-error: true
       with:
         sarif_file: snyk-code.sarif
         category: snyk-code
