@@ -130,15 +130,15 @@ jobs:
       continue-on-error: true
       run: |
         echo "## 🛡️ Snyk Code Scan (SAST)" >> $GITHUB_STEP_SUMMARY
-        if [ -f snyk-code.json ]; then
-          HIGH=$(jq '[.runs[].results[] | select(.level=="error")] | length' snyk-code.json || echo "0")
-          MEDIUM=$(jq '[.runs[].results[] | select(.level=="warning")] | length' snyk-code.json || echo "0")
+        if [ -f snyk-code.sarif ]; then
+          HIGH=$(jq '[.runs[].results[] | select(.level=="error")] | length' snyk-code.sarif || echo "0")
+          MEDIUM=$(jq '[.runs[].results[] | select(.level=="warning")] | length' snyk-code.sarif || echo "0")
           echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
           echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
         else
-          echo "⚠️ No Snyk Code results found" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ No Snyk Code SARIF results found" >> $GITHUB_STEP_SUMMARY
         fi
 
     - name: Upload Snyk Code results to GitHub Code Scanning
