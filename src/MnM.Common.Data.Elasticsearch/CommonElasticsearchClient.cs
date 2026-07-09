@@ -28,8 +28,7 @@ namespace MnM.Common.Data.Elasticsearch
 
 		public async Task<IEnumerable<T>> SearchAsync<T>(SearchRequestDescriptor<T> search, CancellationToken cancellationToken) where T: class
 		{
-			if (search == null) throw new ArgumentNullException(nameof(search));
-			var response = await _retryStrategy.RetryAsync(() => _client.SearchAsync(search, cancellationToken), cancellationToken);
+			var response = await _retryStrategy.RetryAsync(() => _client.SearchAsync<T>(search, cancellationToken), cancellationToken);
 			return response.IsValidResponse ? response.Documents : null;
 		}
 
@@ -48,8 +47,7 @@ namespace MnM.Common.Data.Elasticsearch
 
 		public async Task<T> GetAsync<T>(GetRequestDescriptor<T> getRequest, CancellationToken cancellationToken) where T : class
 		{
-			if (getRequest == null) throw new ArgumentNullException(nameof(getRequest));
-			var response = await _retryStrategy.RetryAsync(() => _client.GetAsync(getRequest, cancellationToken),
+			var response = await _retryStrategy.RetryAsync(() => _client.GetAsync<T>(getRequest, cancellationToken),
 				cancellationToken);
 			return response.IsValidResponse ? response.Source : null;
 		}

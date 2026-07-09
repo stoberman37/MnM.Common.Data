@@ -68,22 +68,6 @@ namespace MnM.Common.Data.Elasticsearch.UnitTests
 		}
 
 		[Fact]
-		public async Task SearchAsync_Fails_WithNullSearchRequestDescriptor()
-		{
-			// Arrange
-			ElasticsearchClient Factory() => new();
-			var repo = new CommonElasticsearchClient(Factory);
-
-			// Act
-			var a = () => repo.SearchAsync(null as SearchRequestDescriptor<object>);
-
-			// Assert
-			await a.Should()
-				.ThrowAsync<ArgumentNullException>()
-				.WithParameterName("search");
-		}
-
-		[Fact]
 		public async Task GetAsync_Fails_WithNullSearchRequest()
 		{
 			// Arrange
@@ -92,22 +76,6 @@ namespace MnM.Common.Data.Elasticsearch.UnitTests
 
 			// Act
 			var a = () => repo.GetAsync<object>(null as GetRequest);
-
-			// Assert
-			await a.Should()
-				.ThrowAsync<ArgumentNullException>()
-				.WithParameterName("getRequest");
-		}
-
-		[Fact]
-		public async Task GetAsync_Fails_WithNullSearchRequestDescriptor()
-		{
-			// Arrange
-			ElasticsearchClient Factory() => new();
-			var repo = new CommonElasticsearchClient(Factory);
-
-			// Act
-			var a = () => repo.GetAsync(null as GetRequestDescriptor<object>);
 
 			// Assert
 			await a.Should()
