@@ -54,7 +54,7 @@ namespace Common.Data.Example
 			{
 				From = from,
 				Size = size,
-				Query = new TermQuery(user) { Value = value }
+				Query = new TermQuery { Field = user, Value = value }
 			};
 		}
 
