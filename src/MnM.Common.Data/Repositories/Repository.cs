@@ -78,25 +78,25 @@ namespace MnM.Common.Data.Repositories
 		#endregion
 
 		#region Async
-		public Task ExecuteDbActionAsync(Func<T, Task> action)
+		public async Task ExecuteDbActionAsync(Func<T, Task> action)
 		{
 			if (action == null) throw new ArgumentNullException(nameof(action));
 			using var client = Factory();
-			return action(client);
+			await action(client).ConfigureAwait(false);
 		}
 
-		public Task<TReturn> ExecuteDbActionAsync(Func<T, Task<TReturn>> action)
+		public async Task<TReturn> ExecuteDbActionAsync(Func<T, Task<TReturn>> action)
 		{
 			if (action == null) throw new ArgumentNullException(nameof(action));
 			using var client = Factory();
-			return action(client);
+			return await action(client).ConfigureAwait(false);
 		}
 
-		public Task<IEnumerable<TReturn>> ExecuteDbActionAsync(Func<T, Task<IEnumerable<TReturn>>> action)
+		public async Task<IEnumerable<TReturn>> ExecuteDbActionAsync(Func<T, Task<IEnumerable<TReturn>>> action)
 		{
 			if (action == null) throw new ArgumentNullException(nameof(action));
 			using var client = Factory();
-			return action(client);
+			return await action(client).ConfigureAwait(false);
 		}
 
 		public Task ExecuteDbActionAsync(INonQuerySpecificationAsync<T> specification)
