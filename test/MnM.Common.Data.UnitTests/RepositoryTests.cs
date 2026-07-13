@@ -24,6 +24,23 @@ namespace MnM.Common.Data.UnitTests
 		}
 	}
 
+	public class TrackingDummyClient : IDisposable
+	{
+		private readonly Action _onDispose;
+		public bool IsDisposed { get; private set; }
+
+		public TrackingDummyClient(Action onDispose = null)
+		{
+			_onDispose = onDispose;
+		}
+
+		public void Dispose()
+		{
+			IsDisposed = true;
+			_onDispose?.Invoke();
+		}
+	}
+
 	[UnitTest]
 	public class RepositoryTests
 	{
@@ -651,6 +668,80 @@ namespace MnM.Common.Data.UnitTests
 
 			// Assert
 			spec.Verify(s => s.ExecuteAsync(It.IsAny<CancellationToken>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task ExecuteDbActionAsync_WithNoReturn_ClientIsNotDisposed_DuringExecution()
+		{
+			// Arrange
+			var tcs = new TaskCompletionSource();
+			var clientDisposedDuringExecution = false;
+			TrackingDummyClient Factory() => new();
+			var repo = new Repository<TrackingDummyClient, object>(Factory);
+
+			async Task Action(TrackingDummyClient c)
+			{
+				await tcs.Task.ConfigureAwait(false);
+				clientDisposedDuringExecution = c.IsDisposed;
+			}
+
+			// Act
+			var task = repo.ExecuteDbActionAsync(Action);
+			tcs.SetResult();
+			await task;
+
+			// Assert: client must not have been disposed while the task was still executing
+			clientDisposedDuringExecution.Should().BeFalse("the client should not be disposed before the task completes");
+		}
+
+		[Fact]
+		public async Task ExecuteDbActionAsync_WithReturn_ClientIsNotDisposed_DuringExecution()
+		{
+			// Arrange
+			var tcs = new TaskCompletionSource();
+			var clientDisposedDuringExecution = false;
+			TrackingDummyClient Factory() => new();
+			var repo = new Repository<TrackingDummyClient, object>(Factory);
+
+			async Task<object> Action(TrackingDummyClient c)
+			{
+				await tcs.Task.ConfigureAwait(false);
+				clientDisposedDuringExecution = c.IsDisposed;
+				return new object();
+			}
+
+			// Act
+			var task = repo.ExecuteDbActionAsync(Action);
+			tcs.SetResult();
+			await task;
+
+			// Assert: client must not have been disposed while the task was still executing
+			clientDisposedDuringExecution.Should().BeFalse("the client should not be disposed before the task completes");
+		}
+
+		[Fact]
+		public async Task ExecuteDbActionAsync_WithCollectionReturn_ClientIsNotDisposed_DuringExecution()
+		{
+			// Arrange
+			var tcs = new TaskCompletionSource();
+			var clientDisposedDuringExecution = false;
+			TrackingDummyClient Factory() => new();
+			var repo = new Repository<TrackingDummyClient, object>(Factory);
+
+			async Task<IEnumerable<object>> Action(TrackingDummyClient c)
+			{
+				await tcs.Task.ConfigureAwait(false);
+				clientDisposedDuringExecution = c.IsDisposed;
+				return new List<object>();
+			}
+
+			// Act
+			var task = repo.ExecuteDbActionAsync(Action);
+			tcs.SetResult();
+			await task;
+
+			// Assert: client must not have been disposed while the task was still executing
+			clientDisposedDuringExecution.Should().BeFalse("the client should not be disposed before the task completes");
 		}
 	}
 }
